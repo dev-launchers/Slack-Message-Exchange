@@ -1,5 +1,5 @@
 type = "webpack"
-name = "tool__slack-bridge"
+name = "WORKER_NAME"
 account_id = "ACCOUNT_ID"
 zone_id = "ZONE_ID"
 workers_dev = false
