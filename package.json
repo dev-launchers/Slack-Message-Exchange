@@ -7,7 +7,8 @@
     "build": "parcel build main.js"
   },
   "dependencies": {
-    "@cloudflare/wrangler": "^1.4.0"
+    "@cloudflare/wrangler": "^1.4.0",
+    "@sentry/browser": "^5.7.1"
   },
   "devDependencies": {
     "parcel-bundler": "^1.6.1"
