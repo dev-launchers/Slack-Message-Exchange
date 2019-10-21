@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/browser';
+const uuidv4 = require('uuid/v4');
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
@@ -42,7 +42,7 @@ async function handleRequest(request) {
     });
   }
 
-  Sentry.captureMessage(`Unhandled event ${JSON.stringify(event)}`);
+  await sentryLog(JSON.stringify(event));
   return new Response(`Expect event type to be message, found ${event.type}`, {
     "status": 200,
     "statusText": "OK",
@@ -56,4 +56,34 @@ async function userIDToName(userID, requestURL) {
     return userName
   }
   return `Can't find user name for ID ${userID}`
+}
+
+async function sentryLog(err) {
+  const currentTimestamp = Date.now() / 1000;
+  const body = sentryEventJson(err, currentTimestamp)
+  const sentryProectID = await SLACK_BRIDGE.get("sentryProjectID");
+  const sentryKey = await SLACK_BRIDGE.get("sentryKey");
+  return await fetch(`https://sentry.io/api/${sentryProectID}/store/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Sentry-Auth': [
+        'Sentry sentry_version=7',
+        `sentry_timestamp=${currentTimestamp}`,
+        `sentry_client=slack-bridge/0`,
+        `sentry_key=${sentryKey}`
+      ].join(', '),
+    },
+    body,
+  });
+}
+
+function sentryEventJson(err, currentTimestamp) {
+  return JSON.stringify({
+    event_id: uuidv4(),
+    message: err,
+    timestamp: currentTimestamp,
+    logger: "slack-bridge-logger",
+    platform: "javascript",
+  })
 }
