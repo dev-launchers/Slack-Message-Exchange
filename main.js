@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/browser';
+
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
 })
@@ -7,6 +9,8 @@ addEventListener('fetch', event => {
  * @param {Request} request
  */
 async function handleRequest(request) {
+  const sentryDSN = await SLACK_BRIDGE.get("sentryDSN");
+  Sentry.init({ dsn: sentryDSN });
   const requestJSON = await request.json()
     .then(data => {
       return data;
@@ -38,7 +42,7 @@ async function handleRequest(request) {
     });
   }
 
-  console.log(`Expect event type to be message, found ${event.type}`);
+  Sentry.captureMessage(`Unhandled event ${JSON.stringify(event)}`);
   return new Response(`Expect event type to be message, found ${event.type}`, {
     "status": 200,
     "statusText": "OK",

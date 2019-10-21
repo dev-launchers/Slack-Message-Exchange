@@ -8,12 +8,14 @@ workers_dev = false
 route = "STUDENT_ROUTE"
 kv-namespaces = [
     { binding = "CHANNELS_TO_WEBHOOK", id = "STUDENT_CHANNELS_TO_WEBHOOK_KV_NAMESPACES" },
-    { binding = "USERS", id = "STUDENT_USERS_KV_NAMESPACES" }
+    { binding = "USERS", id = "STUDENT_USERS_KV_NAMESPACES" },
+    { binding = "SLACK_BRIDGE", id = "STUDENT_SLACK_BRIDGE_KV_NAMESPACES"}
 ]
 
 [env.mentor]
 route = "MENTOR_ROUTE"
 kv-namespaces = [
     { binding = "CHANNELS_TO_WEBHOOK", id = "MENTOR_CHANNELS_TO_WEBHOOK_KV_NAMESPACES" },
-    { binding = "USERS", id = "MENTOR_USERS_KV_NAMESPACES" }
+    { binding = "USERS", id = "MENTOR_USERS_KV_NAMESPACES" },
+    { binding = "SLACK_BRIDGE", id = "MENTOR_SLACK_BRIDGE_KV_NAMESPACES"}
 ]
