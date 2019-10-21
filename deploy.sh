@@ -1,6 +1,13 @@
 #!/bin/bash
 # Replace variables in wrangler.toml with env vars defined in travis
-sed -e "s~ACCOUNT_ID~$ACCOUNT_ID~" \
+case $1 in
+    "staging") WORKER_NAME="test-slack-bridge";;
+    *) WORKER_NAME="slack-bridge";;
+esac
+# STUDENT_ROUTE, STUDENT_CHANNELS_TO_WEBHOOK_KV_NAMESPACES MENTOR_ROUTE and
+# MENTOR_CHANNELS_TO_WEBHOOK_KV_NAMESPACES have different values in travis based on the branch
+sed -e "s~WORKER_NAME~$WORKER_NAME~" \
+    -e "s~ACCOUNT_ID~$ACCOUNT_ID~" \
     -e "s~ZONE_ID~$ZONE_ID~" \
     -e "s~STUDENT_ROUTE~$STUDENT_ROUTE~" \
     -e "s~STUDENT_CHANNELS_TO_WEBHOOK_KV_NAMESPACES~$STUDENT_CHANNELS_TO_WEBHOOK_KV_NAMESPACES~" \
