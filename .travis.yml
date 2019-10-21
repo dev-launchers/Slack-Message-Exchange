@@ -5,16 +5,19 @@ node_js:
 # skip tests
 install: true
 
+script: wrangler build
+
 deploy:
   - provider: script
-    script: >-
-      bash deploy.sh $ACCOUNT_ID $ZONE_ID
-      $STUDENT_ROUTE $STUDENT_CHANNELS_TO_WEBHOOK_KV_NAMESPACES $STUDENT_USERS_KV_NAMESPACES
-      $MENTOR_ROUTE $MENTOR_CHANNELS_TO_WEBHOOK_KV_NAMESPACES $MENTOR_USERS_KV_NAMESPACES
-      $CF_API_KEY $CF_EMAIL
+    script: bash deploy.sh staging
     skip_cleanup: true
     on:
       branch: master
+  - provider: script
+    script: bash deploy.sh production
+    skip_cleanup: true
+    on:
+      branch: release
 
 before_install:
     - "npm i @cloudflare/wrangler -g"
