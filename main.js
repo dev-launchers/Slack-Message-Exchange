@@ -9,8 +9,6 @@ addEventListener('fetch', event => {
  * @param {Request} request
  */
 async function handleRequest(request) {
-  const sentryDSN = await SLACK_BRIDGE.get("sentryDSN");
-  Sentry.init({ dsn: sentryDSN });
   const requestJSON = await request.json()
     .then(data => {
       return data;
