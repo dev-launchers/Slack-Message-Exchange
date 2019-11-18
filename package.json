@@ -8,11 +8,10 @@
   },
   "dependencies": {
     "@cloudflare/wrangler": "^1.4.0",
+    "slack": "^11.0.2",
     "uuid": "^3.3.3"
   },
-  "devDependencies": {
-    "parcel-bundler": "^1.6.1"
-  },
+  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dev-launchers/tool__admin-portal.git"

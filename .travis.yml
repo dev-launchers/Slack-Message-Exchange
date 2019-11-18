@@ -5,7 +5,9 @@ node_js:
 # skip tests
 install: true
 
-script: wrangler build
+script:
+- wrangler build -e student
+- wrangler build -e mentor
 
 deploy:
   - provider: script
