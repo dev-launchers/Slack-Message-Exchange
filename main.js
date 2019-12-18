@@ -79,6 +79,7 @@ async function handleFileShared(event) {
   if (!event.user_id) {
     return respOk('file was not shared by a user')
   }
+
   const userName = await userIDToName(event.user_id);
   if (isBot(userName)) {
     return respOk('do not reshare file')
@@ -86,32 +87,17 @@ async function handleFileShared(event) {
   const fileID = event.file_id;
 
   authToken = await SLACK_BRIDGE.get("authToken");
-  peerAuthToken = await SLACK_BRIDGE.get("peerNamespaceAuthToken");
   peerBotToken = await SLACK_BRIDGE.get("peerNamespaceBotToken");
 
-  let slackClient = new SlackClient(authToken, peerAuthToken, peerBotToken);
+  let slackClient = new SlackClient(authToken, peerBotToken);
   let fileInfo = await slackClient.fileInfo(fileID);
 
   const peerChannel = JSON.parse(await CHANNELS_TO_WEBHOOK.get(event.channel_id)).channel;
 
-  let uploadFileResp;
   if (fileInfo.content) {
-    uploadFileResp = await slackClient.uploadFileToPeer(fileInfo, userName, peerChannel);
-  } else {
-    uploadFileResp = await slackClient.shareRemoteFileWithPeer(fileID, fileInfo, peerChannel);
+    return slackClient.uploadFileToPeer(fileInfo, userName, peerChannel);
   }
-
-  const body = await uploadFileResp.json().then(data => {
-    return data
-  });
-
-  if (!body.ok) {
-    const err = `Failed to upload file ${body}`
-    await sentryLog(err)
-    return respOk(err)
-  }
-
-  return respOk('File shared')
+  return slackClient.shareRemoteFileWithPeer(fileID, fileInfo, peerChannel);
 }
 
 function urlEncodedBody(params) {
@@ -181,13 +167,12 @@ function respOk(message) {
 }
 
 class SlackClient {
-  constructor(authToken, peerAuthToken, peerBotToken) {
+  constructor(authToken, peerBotToken) {
     this.authToken = authToken;
-    this.peerAuthToken = peerAuthToken;
     this.peerBotToken = peerBotToken;
 
     this.client = new Slack({ "token": authToken });
-    this.peerClient = new Slack({ "token": peerAuthToken });
+    this.peerClient = new Slack({ "token": peerBotToken });
   }
 
   // https://api.slack.com/methods/files.info
@@ -203,7 +188,7 @@ class SlackClient {
 
   // For uploading snipper/text
   async uploadFileToPeer(fileInfo, userName, peerChannel) {
-    uploadFileResp = await this.peerClient.files.upload({
+    const uploadFileResp = await this.peerClient.files.upload({
       "channels": peerChannel,
       "content": fileInfo.content,
       "filename": fileInfo.file.name,
@@ -211,7 +196,14 @@ class SlackClient {
       "title": fileInfo.file.title,
       "initial_comment": `${userName} shared ${fileInfo.file.name}`
     })
-    return uploadFileResp
+
+    if (!uploadFileResp.ok) {
+      const err = `Failed to upload file ${body}`
+      await sentryLog(err)
+      return respOk(err)
+    }
+
+    return respOk('File shared')
   }
 
   // Adds and share remote file with a channel in the peer namespace
@@ -237,12 +229,12 @@ class SlackClient {
       await sentryLog(err);
       return respOk(err)
     }
-    const body = await addRemoteFileResp.json().then(data => {
+    const addRemoteFileBody = await addRemoteFileResp.json().then(data => {
       return data
     });
 
-    if (!body.ok) {
-      const err = `Add remote file returned error ${body.error}`;
+    if (!addRemoteFileBody.ok) {
+      const err = `Add remote file returned error ${addRemoteFileBody.error}`;
       await sentryLog(err);
       return respOk(err)
     }
@@ -256,10 +248,21 @@ class SlackClient {
         token: this.peerBotToken,
         channels: peerChannel,
         external_id: fileID,
-        file: body.file.id,
+        file: addRemoteFileBody.file.id,
       })
     })
-    return uploadFileResp
+
+    const uploadFileBody = await uploadFileResp.json().then(data => {
+      return data
+    });
+
+    if (!uploadFileBody.ok) {
+      const err = `Failed to upload file ${uploadFileBody}`
+      await sentryLog(err)
+      return respOk(err)
+    }
+
+    return respOk('File shared')
   }
 
 }
