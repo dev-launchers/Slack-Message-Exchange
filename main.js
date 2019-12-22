@@ -219,11 +219,12 @@ class SlackClient {
       body: urlEncodedBody({
         token: this.peerBotToken,
         external_id: fileID,
-        external_url: `${fileBaseURL}/${fileID}/${fileInfo.file.name}`,
+        external_url: `${fileBaseURL}/${fileID}/${this.escapedFileName(fileInfo)}`,
         title: fileInfo.file.title,
         filetype: fileInfo.file.filetype,
       })
     })
+
     if (addRemoteFileResp.status != 200) {
       const err = `Add remote file returned status ${addRemoteFileResp.status}`;
       await sentryLog(err);
@@ -263,6 +264,12 @@ class SlackClient {
     }
 
     return respOk('File shared')
+  }
+
+  escapedFileName(fileInfo) {
+    const fileHostURL = new URL(fileInfo.file.url_private);
+    const path = fileHostURL.pathname.split('/');
+    return path[path.length - 1]
   }
 
 }
