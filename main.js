@@ -198,7 +198,7 @@ class SlackClient {
     })
 
     if (!uploadFileResp.ok) {
-      const err = `Failed to upload file ${body}`
+      const err = `Failed to upload file, error ${uploadFileResp.error}`
       await sentryLog(err)
       return respOk(err)
     }
@@ -258,7 +258,7 @@ class SlackClient {
     });
 
     if (!uploadFileBody.ok) {
-      const err = `Failed to upload file ${uploadFileBody}`
+      const err = `Failed to upload file, error ${uploadFileBody.error}`
       await sentryLog(err)
       return respOk(err)
     }
